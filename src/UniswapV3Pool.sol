@@ -11,6 +11,9 @@ using Position for mapping(bytes32 => Position.Info);
 using Position for Position.Info;
 
 
+error invalidTickRange();
+error zeroLiquidity();
+
 int24 internal constant MIN_TICK = -887272;
 int24 internal constant MAX_TICK = -MIN_TICK;
 
@@ -67,6 +70,42 @@ constructor(address token0_,
                     token1 = token1_; 
                     slot0 = Slot0({sqrtPriceX96: sqrtPX96, tick: inital_tick});
     }
+
+
+/**
+ * 
+ * @param owner Address of the owner to track the liquidity
+ * @param lowertick defines the lower range of the price
+ * @param uppertick defines the upper range of the price
+ * @param amount  The amount of liquidity want to provide
+ * @return amount0 
+ * @return amount1 
+ */
+
+
+function mint(
+    address owner,
+    int24 lowertick,
+    int24 uppertick,
+    uint128 amount) external returns (uint256 amount0,uint256 amount1){
+
+
+    
+    if(lowertick>=uppertick||lowertick<MIN_TICK||uppertick>MAX_TICK){
+        revert invalidTickRange();
+        }
+
+    if(amount==0){
+        revert zeroLiquidity(); 
+    }
+
+    ticks.update(lowertick,amount);
+    ticks.update(uppertick,amount);
+
+    Position.Info storage position = positions.get(owner, lowertick, uppertick);
+    position.update(amount);
+
+}
     
 }
 
