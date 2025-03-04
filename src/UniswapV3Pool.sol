@@ -37,6 +37,10 @@ struct Slot0 {
 
 Slot0 public slot0;
 
+
+amount0 = 0.998976618347425280 ether;
+amount1 = 5000 ether;
+
 // Amount of liquidity, L.
 uint128 public liquidity;
 
@@ -109,7 +113,42 @@ function mint(
     Position.Info storage position = positions.get(owner, lowertick, uppertick);
     position.update(amount);
 
+
+    uint256 balance0Before;
+    uint256 balance1Before;
+
+    // First we get the current Token balances
+    if (amount0 > 0) balance0Before =    balance0();
+    if (amount1 > 0) balance1Before =    balance1();
+
+
+    //Then we call the uniswapV3MintCallback method on the caller–this is the callback. It’s expected that the caller 
+    // (whoever calls mint) is a contract because non-contract addresses cannot implement functions in Ethereum
+
+    IUniswapV3callback(msg.sender).uniswapV3mintCallback(amount0, amount1);
+
+    // Then we call the uniswapV3MintCallback method on the caller–this is the callback. It’s expected that the caller 
+    // (whoever calls mint) is a contract because non-contract addresses cannot implement functions in Ethereum
+    if (amount0 > 0 && balance0Before + amount0 > balance0())
+        revert InsufficientInputAmount();
     
+    if (amount1 > 0 && balance1Before+amount1>balance1())
+        revert InsufficientInputAmount();
+
+
+    emit Mint(msg.sender, owner, lowerTick, upperTick, amount, amount0, amount1);
+
+
+}
+
+
+function balance0() internal returns(uint256 balance) {
+
+    
+
+}
+
+function balance1() internal returns(uint256 balance) {
 
 }
     
