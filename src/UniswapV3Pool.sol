@@ -51,10 +51,18 @@ mapping(int24 => tick.Info) public ticks;
 
 mapping(bytes32 => Position.Info) public positions;
 
-    constructor(address token0_, 
-                address token1_, 
-                uint160 sqrtPX96, 
-                int24 inital_tick){
+/**
+ * 
+ * @param token0_ The address of token0 in the pair
+ * @param token1_ The address of token1 in the pair
+ * @param sqrtPX96 The initial square root price of token1 in terms of token0, scaled by 2^96
+ * @param inital_tick The corresponding tick index for the given sqrtPX96
+ */
+
+constructor(address token0_, 
+            address token1_, 
+            uint160 sqrtPX96, 
+            int24 inital_tick){
                     token0 = token0_;
                     token1 = token1_; 
                     slot0 = Slot0({sqrtPriceX96: sqrtPX96, tick: inital_tick});
