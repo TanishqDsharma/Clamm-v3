@@ -78,8 +78,8 @@ constructor(address token0_,
  * @param lowertick defines the lower range of the price
  * @param uppertick defines the upper range of the price
  * @param amount  The amount of liquidity want to provide
- * @return amount0 
- * @return amount1 
+ * @return amount0 Returns required amount of token0
+ * @return amount1 Returns required amount of token1
  */
 
 
@@ -90,20 +90,26 @@ function mint(
     uint128 amount) external returns (uint256 amount0,uint256 amount1){
 
 
-    
+    // Price Range Checks
     if(lowertick>=uppertick||lowertick<MIN_TICK||uppertick>MAX_TICK){
         revert invalidTickRange();
         }
 
+    // Checking the amount of liquidity should not be zero
     if(amount==0){
         revert zeroLiquidity(); 
     }
-
+    
+    // Updating the ticks mapping for both lower and upper range
     ticks.update(lowertick,amount);
     ticks.update(uppertick,amount);
 
+
+    // Updating the positions mapping
     Position.Info storage position = positions.get(owner, lowertick, uppertick);
     position.update(amount);
+
+    
 
 }
     
