@@ -127,10 +127,13 @@ function mint(
 
     IUniswapV3callback(msg.sender).uniswapV3mintCallback(amount0, amount1);
 
-    // Then we call the uniswapV3MintCallback method on the caller–this is the callback. It’s expected that the caller 
-    // (whoever calls mint) is a contract because non-contract addresses cannot implement functions in Ethereum
+    // If ammount0 is greater than 0 and if the new balance of token0 is less than the previous balance plus the expected
+    // it means the caller did not transfer enough token0 to the pool
     if (amount0 > 0 && balance0Before + amount0 > balance0())
         revert InsufficientInputAmount();
+    
+    // If amount1 is greater than 1 and if the new balance of token1 is less than the previous balance plus the expected
+    // amount it means the caller did not transfer enough token1 to the pool
     
     if (amount1 > 0 && balance1Before+amount1>balance1())
         revert InsufficientInputAmount();
@@ -144,11 +147,13 @@ function mint(
 
 function balance0() internal returns(uint256 balance) {
 
-    
+    balance = IERC20(token0).balanceOf(address(this));
+
 
 }
 
 function balance1() internal returns(uint256 balance) {
+    balance = IERC20(token0).balanceOf(address(this));
 
 }
     
