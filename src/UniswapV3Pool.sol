@@ -38,8 +38,8 @@ struct Slot0 {
 Slot0 public slot0;
 
 
-amount0 = 0.998976618347425280 ether;
-amount1 = 5000 ether;
+uint256 amount0 = 0.998976618347425280 ether;
+uint256 amount1 = 5000 ether;
 
 // Amount of liquidity, L.
 uint128 public liquidity;
