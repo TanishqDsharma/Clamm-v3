@@ -1,8 +1,12 @@
-// SPDX-License-Identifier: SEE LICENSE IN LICENSE
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.16;
 
 import "../lib/Tick.sol";
 import "../lib/position.sol";
+
+import "./interfaces/IERC20.sol";
+import "./interfaces/IUniswapV3MintCallback.sol";
+import "./interfaces/IUniswapV3SwapCallback.sol";
 
 contract UniswapV3Pool{
 
@@ -10,9 +14,24 @@ using tick for mapping(int24 => tick.Info);
 using Position for mapping(bytes32 => Position.Info);
 using Position for Position.Info;
 
+///////////////////
+//// Errors  /////
+/////////////////
 
 error invalidTickRange();
 error zeroLiquidity();
+error InsufficientInputAmount();
+
+//////////////////
+//// Events  ////
+////////////////
+event Mint(address sender,
+           address indexed owner,
+           int24 indexed tickLower,
+           int24 indexed tickUpper,
+           uint128 amount,
+           uint256 amount0,
+           uint256 amount1 );
 
 int24 internal constant MIN_TICK = -887272;
 int24 internal constant MAX_TICK = -MIN_TICK;
@@ -91,7 +110,8 @@ function mint(
     address owner,
     int24 lowertick,
     int24 uppertick,
-    uint128 amount) external returns (uint256 amount0,uint256 amount1){
+    uint128 amount,
+    bytes calldata data) external returns (uint256 amount0,uint256 amount1){
 
 
     // Price Range Checks
@@ -125,7 +145,7 @@ function mint(
     //Then we call the uniswapV3MintCallback method on the caller–this is the callback. It’s expected that the caller 
     // (whoever calls mint) is a contract because non-contract addresses cannot implement functions in Ethereum
 
-    IUniswapV3callback(msg.sender).uniswapV3mintCallback(amount0, amount1);
+    IUniswapV3MintCallback(msg.sender).uniswapV3MintCallback(amount0, amount1, data);
 
     // If ammount0 is greater than 0 and if the new balance of token0 is less than the previous balance plus the expected
     // it means the caller did not transfer enough token0 to the pool
@@ -139,11 +159,15 @@ function mint(
         revert InsufficientInputAmount();
 
 
-    emit Mint(msg.sender, owner, lowerTick, upperTick, amount, amount0, amount1);
+    emit Mint(msg.sender, owner, lowertick, uppertick, amount, amount0, amount1);
 
 
 }
 
+
+///////////////////////////
+//// Internal Func ////////
+//////////////////////////
 
 function balance0() internal returns(uint256 balance) {
 
